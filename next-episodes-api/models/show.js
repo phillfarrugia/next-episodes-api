@@ -1,15 +1,14 @@
-var mongoose     = require('mongoose');
-var Schema       = mongoose.Schema;
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
 var ShowSchema   = new Schema({
-	watchers: Number,
     title: String,
     year: Number,
     ids: {
     	trakt: Number,
     	slug: String,
     	tvdb: Number,
-    	imdb: Number,
+    	imdb: String,
     	tmdb: Number,
     	tvrage: Number
     },
@@ -60,4 +59,8 @@ var ShowSchema   = new Schema({
     }
 });
 
-module.exports = mongoose.model('Show', ShowSchema);
+var Show = mongoose.model('Show', ShowSchema);
+
+module.exports = {
+  Show: Show
+}
