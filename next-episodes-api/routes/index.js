@@ -92,7 +92,7 @@ function GetLatestEpisodeWithRequest (showId, seasonNumber, callback) {
 					callback(doc);
 				});
 			} else {
-				return console.log(err);
+				callback({ "Error": "No new episodes available." })
 			}
 		});
 	});
