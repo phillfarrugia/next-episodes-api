@@ -64,22 +64,8 @@ function GetLatestEpisodeWithRequest (showId, seasonNumber, callback) {
 		async.each(jsonArray, function(e, finished) {
 			var airDate = new Date(e.first_aired);
 			if (Date.now() < airDate) {
-				Episode.create({
-					season: e.season,
-					number: e.number,
-					title: e.title,
-					ids: e.ids,
-					first_aired: e.first_aired,
-					updated_at: e.updated_at,
-					rating: e.rating,
-					votes: e.votes,
-					overview: e.overview,
-					available_translations: e.available_translations
-				}, function(err, doc) {
-					if (err) return console.log(err);
-					episodes.push(doc);
-					finished();
-				});
+				episodes.push(e);
+				finished();
 			} else {
 				finished();
 			}
@@ -88,7 +74,23 @@ function GetLatestEpisodeWithRequest (showId, seasonNumber, callback) {
 				episodes.sort(function (a, b) {
 					return a.number - b.number;
 				});
-				callback(episodes[0]);
+
+				var latest = episodes[0];
+				Episode.create({
+					season: latest.season,
+					number: latest.number,
+					title: latest.title,
+					ids: latest.ids,
+					first_aired: latest.first_aired,
+					updated_at: latest.updated_at,
+					rating: latest.rating,
+					votes: latest.votes,
+					overview: latest.overview,
+					available_translations: latest.available_translations
+				}, function(err, doc) {
+					if (err) return console.log(err);
+					callback(doc);
+				});
 			} else {
 				return console.log(err);
 			}
