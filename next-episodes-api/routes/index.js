@@ -24,7 +24,7 @@ router.get('/api/v1/trending', function(req, res) {
 
 			if (Date.now() > expiryDate) {
 
-				
+				trending.remove();
 
 				generateTrendingShows(function(trending) {
 					res.send(JSON.stringify(trending));
