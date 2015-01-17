@@ -3,6 +3,7 @@ var router = express.Router();
 var request = require('request');
 var mongoose = require('mongoose');
 var Show = require("../models/show").Show;
+var Trending = require("../models/trending").Trending;
 
 /* GET home page. */
 router.get('/api/v1', function(req, res) {
@@ -11,21 +12,31 @@ router.get('/api/v1', function(req, res) {
 
 /* GET trending shows. */
 router.get('/api/v1/trending', function(req, res) {
-	var trendingShows = {
-		url: 'https://api.trakt.tv/shows/trending',
-		headers: {
-			'Content-Type': 'application/json',
-			'trakt-api-key': '2d90c6c30a7efebc1dcef8464d16cf9a46cc9a56f23ec51a3ae3681aaa96634c',
-			'trakt-api-version': '2'
+
+	// Do trending shows exist in DB?
+	Trending.findOne({}, function(err, trending) {
+		if (err) return console.log(err);
+
+		if (trending) {
+			var dateCreated = new Date(trending.updated);
+			var expiryDate = dateCreated.setDate(dateCreated.getDate() + 7);
+			var utcExpiryDate = new Date(expiryDate).toISOString();
+
+			if (Date.now() > expiryDate) {
+
+				
+
+				generateTrendingShows(function(trending) {
+					res.send(JSON.stringify(trending));
+				});
+			} else {
+				res.send(JSON.stringify(trending.shows));
+			}
+		} else {
+			generateTrendingShows(function(trending) {
+					res.send(JSON.stringify(trending));
+			});
 		}
-	};
-	
-	request(trendingShows, function (error, response, body) {
-	  if (!error && response.statusCode == 200) {
-	  	var shows = JSON.parse(body);
-	  	createShows(shows);
-		res.send(shows);
-	  }
 	})
 });
 
@@ -34,13 +45,51 @@ router.get('/api/v1/shows/:id', function(req, res) {
   res.render('index', { title: 'Next Episodes API' });
 });
 
-function createShows(shows) {
-	for (i=0; i < shows.length; i++) {
-		createShow(shows[i].show);
+function generateTrendingShows (callback) {
+	var trendingShows = {
+		url: 'https://api.trakt.tv/shows/trending',
+		headers: {
+			'Content-Type': 'application/json',
+			'trakt-api-key': '2d90c6c30a7efebc1dcef8464d16cf9a46cc9a56f23ec51a3ae3681aaa96634c',
+			'trakt-api-version': '2'
+		}
+	};
+
+	request(trendingShows, function (error, response, body) {
+	  if (!error && response.statusCode == 200) {
+	  	var shows = JSON.parse(body);
+	  	createShows(shows, function(newShowsArray) {
+	  		Trending.create({
+	  			shows: newShowsArray
+	  		}, function(err, trending) {
+	  			console.log('trending shows saved in db');
+	  			callback(trending);
+	  		});
+	  	});
+	  }
+})
+}
+
+function createShows(shows, callback) {
+	var showsArray = [];
+	var x;
+
+	for (x in shows) {
+		console.log(shows[x].show.title);
+
+		createShow(shows[x].show, function(s) {
+			if (showsArray.indexOf(s) == -1) {
+				showsArray.push(s);
+			}
+
+			if (showsArray.length == shows.length) {
+				callback(showsArray);
+			}
+		})
 	}
 }
 
-function createShow (show) {
+function createShow (show, callback) {
 	requestShowSummary(show, function(response) {
 
 		Show.create({
@@ -78,28 +127,27 @@ function createShow (show) {
 		images: response.images
 	}, function (err, show) {
 			if (err) return console.log(err);
-			//saved
+			callback(show);
 			console.log(show.title + ' saved to db');
 		});	
 })
 }
 
-function requestShowSummary(show, callback) {
+function requestShowSummary(show, callback) {	
 	var fullShowRequest = {
-			url: 'https://api.trakt.tv/shows/' + show.ids.trakt + '?extended=full,images',
-			headers: {
-				'Content-Type': 'application/json',
-				'trakt-api-key': '2d90c6c30a7efebc1dcef8464d16cf9a46cc9a56f23ec51a3ae3681aaa96634c',
-				'trakt-api-version': '2'
-			}
-		};
-		
+		url: 'https://api.trakt.tv/shows/' + show.ids.trakt + '?extended=full,images',
+		headers: {
+			'Content-Type': 'application/json',
+			'trakt-api-key': '2d90c6c30a7efebc1dcef8464d16cf9a46cc9a56f23ec51a3ae3681aaa96634c',
+			'trakt-api-version': '2'
+		}
+	};	
+
 	request(fullShowRequest, function (error, response, body) {
 		  if (!error && response.statusCode == 200) {
 			callback(JSON.parse(body));
 		  }
 		});
 }
-
 
 module.exports = router;

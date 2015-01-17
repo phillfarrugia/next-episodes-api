@@ -13,7 +13,7 @@ var ShowSchema   = new Schema({
     	tvrage: Number
     },
     overview: String,
-    first_aired: Date,
+    first_aired: String,
     airs: {
     	day: String,
     	time: String,
