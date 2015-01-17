@@ -19,4 +19,8 @@ var EpisodeSchema   = new Schema({
     available_translations: [String]
 });
 
-module.exports = mongoose.model('Episode', EpisodeSchema);
+var Episode = mongoose.model('Episode', EpisodeSchema);
+
+module.exports = {
+  Episode: Episode
+}

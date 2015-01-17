@@ -4,7 +4,7 @@ var request = require('request');
 var mongoose = require('mongoose');
 var async = require('async');
 var Show = require("../models/show").Show;
-var Trending = require("../models/trending").Trending;
+var Episode = require("../models/episode").Episode;
 
 /* GET home page. */
 router.get('/api/v1', function(req, res) {
@@ -12,128 +12,92 @@ router.get('/api/v1', function(req, res) {
 });
 
 /* GET single shows. */
-router.get('/api/v1/shows/:id', function(req, res) {
-  res.render('index', { title: 'Next Episodes API' });
-});
+router.get('/api/v1/show/:id/episode/', function(req, res) {
 
-/* GET trending shows. */
-router.get('/api/v1/trending', function(req, res) {
+	Episode.find({ 'ids.trakt': req.params.id }, function(err, docs) {
+		if (!docs.length) {
 
-	// Do trending shows exist in DB?
-	Trending.findOne({}, function(err, doc) {
-		if (err) return console.log(err);
-		if (doc) {
-			var dateCreated = new Date(doc.updated);
-			var expiryDate = dateCreated.setDate(dateCreated.getDate() + 7);
-			var utcExpiryDate = new Date(expiryDate).toISOString();
-			if (Date.now() > expiryDate) {
-				doc.remove();
-				GenerateTrendingShowsList(function(obj) {
-					res.send(JSON.stringify(obj));
-				});
-			} else {
-				res.send(JSON.stringify(doc.shows));
-			}
-		} else {
-			GenerateTrendingShowsList(function(trending) {
-					res.send(JSON.stringify(trending));
+			// create episode
+			GenerateNextEpisodeForShow(req.params.id, function (obj) {
+				res.send(JSON.stringify(obj));
 			});
+
+		} else {
+			res.send(JSON.stringify(docs[0]));
 		}
-	});
+	})
 });
 
-function GenerateTrendingShowsList (callback) {
-	request({ url: 'https://api.trakt.tv/shows/trending',
+function GenerateNextEpisodeForShow (showId, callback) {
+	GetLatestSeasonWithRequest(showId, function (response) {
+		GetLatestEpisodeWithRequest(showId, response.number, callback);
+	});
+}
+
+function GetLatestSeasonWithRequest (showId, callback) {
+	GetAllSeasonsWithRequest(showId, function (response) {
+		response.sort(function(a, b) {
+			// Sort seasons by 'number' property
+			return b.number - a.number;
+		});
+		callback(response[0]);
+	});
+}
+
+function GetAllSeasonsWithRequest (showId, callback) {
+	request({ url: 'https://api.trakt.tv/shows/' + showId + '/seasons?extended=full',
 		headers: {
 			'Content-Type': 'application/json',
 			'trakt-api-key': '2d90c6c30a7efebc1dcef8464d16cf9a46cc9a56f23ec51a3ae3681aaa96634c',
 			'trakt-api-version': '2'
 		}
 	}, function (error, response, body) {
-	  if (!error && response.statusCode == 200) {
-	  	var jsonArray = JSON.parse(body);
-	  	GenerateShowsList(jsonArray, function(Shows) {
-	  		Trending.create({
-	  			shows: Shows
-	  		}, function(err, docs) {
-	  			if (err) return console.log(err);
-	  			console.log('Trending Shows created in DB');
-	  			callback(docs);
-	  		});
-	  	});
-	  }
-})
+		  if (!error && response.statusCode == 200) {
+			callback(JSON.parse(body));
+		  }
+		});
 }
 
-function GenerateShowsList (jsonArray, callback) {
-	var shows = [];
-	async.each(jsonArray, function(s, finished) {
-		Show.find({ 'ids.trakt': s.show.ids.trakt }, function (err, docs) {
-			if (err) return console.log(err);
-			if (!docs.length) {
-				GenerateShow(s.show, function(show) {
-					shows.push(show);
+function GetLatestEpisodeWithRequest (showId, seasonNumber, callback) {
+	GetAllEpisodesForSeasonWithRequest (showId, seasonNumber, function (jsonArray) {
+		var episodes = [];
+		async.each(jsonArray, function(e, finished) {
+			var airDate = new Date(e.first_aired);
+			if (Date.now() < airDate) {
+				Episode.create({
+					season: e.season,
+					number: e.number,
+					title: e.title,
+					ids: e.ids,
+					first_aired: e.first_aired,
+					updated_at: e.updated_at,
+					rating: e.rating,
+					votes: e.votes,
+					overview: e.overview,
+					available_translations: e.available_translations
+				}, function(err, doc) {
+					if (err) return console.log(err);
+					episodes.push(doc);
 					finished();
-				})
+				});
 			} else {
-				shows.push(docs[0]);
 				finished();
 			}
-	});
-	}, function(err) {
-		if (shows.length == jsonArray.length) {
-			callback(shows);
-		} else {
-			return console.log(err)
-		}
+		}, function(err) {
+			if (episodes.length) {
+				episodes.sort(function (a, b) {
+					return a.number - b.number;
+				});
+				callback(episodes[0]);
+			} else {
+				return console.log(err);
+			}
+		});
 	});
 }
 
-function GenerateShow (json, callback) {
-	GetFullShowWithRequest(json, function(response) {
-		Show.create({
-			title: response.title,
-			year: response.year,
-			ids: {
-				trakt: response.ids.trakt,
-				slug: response.ids.slug,
-				tvdb: response.ids.tvdb,
-				imdb: response.ids.imdb,
-				tmdb: response.ids.tmdb,
-				tvrage: response.ids.tvrage
-			},
-			overview: response.overview,
-			first_aired: response.first_aired,
-			airs: {
-				day: response.airs.day,
-				time: response.airs.time,
-				timezone: response.airs.timezone
-			},
-			runtime: response.runtime,
-			certification: response.certification,
-			network: response.network,
-			country: response.country,
-			trailer: response.trailer,
-			homepage: response.homepage,
-			status: response.status,
-			rating: response.rating,
-			votes: response.votes,
-			updated_at: response.updated_at,
-			language: response.language,
-			available_translations: response.available_translations,
-			genres: response.genres,
-			aired_episodes: response.aired_episodes,
-			images: response.images
-	}, function (err, doc) {
-			if (err) return console.log(err);
-			callback(doc);
-			console.log(doc.title + ' saved in DB');
-		});	
-})
-}
-
-function GetFullShowWithRequest(json, callback) {	
-	request({ url: 'https://api.trakt.tv/shows/' + json.ids.trakt + '?extended=full,images',
+function GetAllEpisodesForSeasonWithRequest (showId, seasonNumber, callback) {
+	request({ url: 'https://api.trakt.tv/shows/' + showId + '/seasons/' + seasonNumber + '?extended=full',
 		headers: {
 			'Content-Type': 'application/json',
 			'trakt-api-key': '2d90c6c30a7efebc1dcef8464d16cf9a46cc9a56f23ec51a3ae3681aaa96634c',
