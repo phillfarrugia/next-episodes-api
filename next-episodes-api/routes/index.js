@@ -19,7 +19,7 @@ router.get('/api/v1/show/:id/episode/', function(req, res) {
 			var expiryDate = dateCreated.setDate(dateCreated.getDate() + 7);
 			if (Date.now > expiryDate) {
 				// Send the user the outdated one
-				res.send(JSON.stringify(obj));
+				res.send(JSON.stringify(doc));
 
 				// Create another one
 				doc.remove();
@@ -27,7 +27,7 @@ router.get('/api/v1/show/:id/episode/', function(req, res) {
 					// New Episode Saved in DB
 				});
 			} else {
-				res.send(JSON.stringify(obj));
+				res.send(JSON.stringify(doc));
 			}
 		} else {
 		// Find if the show exists
