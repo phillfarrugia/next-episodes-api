@@ -2,6 +2,8 @@ var mongoose     = require('mongoose');
 var Schema       = mongoose.Schema;
 
 var EpisodeSchema   = new Schema({
+    showId: Number,
+    updated: { type: Date, default: Date.now },
     season: Number,
     number: Number,
     title: String,
@@ -12,7 +14,6 @@ var EpisodeSchema   = new Schema({
     	tvrage: Number
     },
     first_aired: String,
-	updated_at: String,
 	rating: Number,
     votes: Number,
     overview: String,

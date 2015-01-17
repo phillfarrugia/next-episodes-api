@@ -14,22 +14,26 @@ router.get('/', function(req, res) {
 			var dateCreated = new Date(doc.updated);
 			var expiryDate = dateCreated.setDate(dateCreated.getDate() + 7);
 			if (Date.now() > expiryDate) {
+				// Send the user the outdated one
+				res.send(JSON.stringify(doc.shows));
+
+				// Create another one
 				doc.remove();
 				GenerateTrendingShowsList(function(obj) {
-					res.send(JSON.stringify(obj));
+					// New Trending Shows List Saved in DB
 				});
 			} else {
 				res.send(JSON.stringify(doc.shows));
 			}
 		} else {
 			GenerateTrendingShowsList(function(trending) {
-					res.send(JSON.stringify(trending));
+				res.send(JSON.stringify(trending));
 			});
 		}
 	});
 });
 
-function GenerateTrendingShowsList (callback) {
+function GenerateTrendingShowsList () {
 	request({ url: 'https://api.trakt.tv/shows/trending',
 		headers: {
 			'Content-Type': 'application/json',
@@ -105,7 +109,6 @@ function GenerateShow (json, callback) {
 			status: response.status,
 			rating: response.rating,
 			votes: response.votes,
-			updated_at: response.updated_at,
 			language: response.language,
 			available_translations: response.available_translations,
 			genres: response.genres,

@@ -3,6 +3,7 @@ var Schema = mongoose.Schema;
 
 var ShowSchema   = new Schema({
     title: String,
+    updated: { type: Date, default: Date.now },
     year: Number,
     ids: {
     	trakt: Number,
@@ -28,7 +29,6 @@ var ShowSchema   = new Schema({
     status: String,
     rating: Number,
     votes: Number,
-    updated_at: String,
     language: String,
     available_translations: [String],
     genres: [String],
