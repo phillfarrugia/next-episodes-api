@@ -13,13 +13,10 @@ router.get('/:id/episode/', function(req, res) {
 			var dateCreated = new Date(doc.updated);
 			var expiryDate = dateCreated.setDate(dateCreated.getDate() + 7);
 			if (Date.now > expiryDate) {
-				// Send the user the outdated one
-				res.send(JSON.stringify(doc));
-
-				// Create another one
 				doc.remove();
 				GenerateNextEpisodeForShow(req.params.id, function (obj) {
-					// New Episode Saved in DB
+					// New Episode saved in db
+					res.send(JSON.stringify(obj));
 				});
 			} else {
 				res.send(JSON.stringify(doc));

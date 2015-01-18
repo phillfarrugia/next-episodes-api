@@ -15,7 +15,7 @@ router.get('/:query', function(req, res) {
 			if (Date.now > expiryDate) {
 				doc.remove();
 				GenerateNewSearchList(req.params.query, function (obj) {
-					// new search list saved to db
+					// new Search list saved in db
 					res.send(JSON.stringify(obj));
 				});
 			} else {
@@ -23,7 +23,7 @@ router.get('/:query', function(req, res) {
 			}
 		} else {
 			GenerateNewSearchList(req.params.query, function(obj) {
-				// new search list saved to db
+				// new Search list saved to db
 				res.send(JSON.stringify(obj));
 			});
 		}
@@ -39,7 +39,7 @@ function GenerateNewSearchList(query, callback) {
 					var dateCreated = new Date(doc.updated);
 					var expiryDate = dateCreated.setDate(dateCreated.getDate() + 14);
 					if (Date.now > expiryDate) {
-						// show is older than 14 days, add it to list remove form db and create new one
+						// expired so create a new one
 						doc.remove();
 						GenerateShow (s.show.ids.trakt, function (show) {
 							finished();
@@ -49,7 +49,7 @@ function GenerateNewSearchList(query, callback) {
 						finished();
 					}	
 				} else {
-					// doesn't exist so create one
+					// doesn't exist so create a new one
 					GenerateShow (s.show.ids.trakt, function (show) {
 						shows.push(show);
 						finished();

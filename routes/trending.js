@@ -14,19 +14,17 @@ router.get('/', function(req, res) {
 			var dateCreated = new Date(doc.updated);
 			var expiryDate = dateCreated.setDate(dateCreated.getDate() + 7);
 			if (Date.now() > expiryDate) {
-				// Send the user the outdated one
-				res.send(JSON.stringify(doc.shows));
-
-				// Create another one
 				doc.remove();
 				GenerateTrendingShowsList(function(obj) {
-					// New Trending Shows List Saved in DB
+					// new Trending Shows list saved in db
+					res.send(JSON.stringify(obj));
 				});
 			} else {
 				res.send(JSON.stringify(doc.shows));
 			}
 		} else {
 			GenerateTrendingShowsList(function(trending) {
+				// new Trending Shows list saved in db
 				res.send(JSON.stringify(trending));
 			});
 		}
