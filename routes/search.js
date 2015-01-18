@@ -59,7 +59,14 @@ function GenerateNewSearchList(query, callback) {
 		}, function(err) {
 			// processing iterator is compelete
 			if (shows.length == response.length) {
-				callback(shows);
+				Search.create({
+					shows: shows,
+					query: query
+				}, function(err, doc) {
+				if (err) return console.log(err);
+				callback(doc);
+				console.log('Search query: ' + doc.query + ' saved in DB');
+				});
 			}
 		});
 	});
