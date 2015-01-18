@@ -28,9 +28,9 @@ router.get('/:id/episode/', function(req, res) {
 		// Find if the show exists
 		Show.findOne({ 'ids.trakt': req.params.id }, function(err, doc) {
 			if (doc) {
-					GenerateNextEpisodeForShow(req.params.id, function (obj) {
-						res.send(JSON.stringify(obj));
-					});
+				GenerateNextEpisodeForShow(req.params.id, function (obj) {
+					res.send(JSON.stringify(obj));
+				});
 			} else {
 				// create the show first
 				GenerateShow(req.params.id, function (show) {

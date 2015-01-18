@@ -8,8 +8,6 @@ router.get('/api/v1', function(req, res) {
 
 /* GET home page. */
 router.get('/api/v1/shows/:query', function(req, res) {
-
-	
   res.render('index', { title: 'Next Episodes API' });
 });
 
