@@ -33,20 +33,19 @@ router.get('/api/v1/show/:id/episode/', function(req, res) {
 		// Find if the show exists
 		Show.findOne({ 'ids.trakt': req.params.id }, function(err, doc) {
 			if (doc) {
-				// is it a currently running, otherwise don't bother
-				if (doc.status === "returning series" || doc.status === "in production") {
 					GenerateNextEpisodeForShow(req.params.id, function (obj) {
 						res.send(JSON.stringify(obj));
 					});
-				} else {
-					res.send({ "Error": "Show has ended." })
-				}
 			} else {
 				// create the show first
 				GenerateShow(req.params.id, function (show) {
-					GenerateNextEpisodeForShow(req.params.id, function (obj) {
+					if (!show.error) {
+						GenerateNextEpisodeForShow(req.params.id, function (obj) {
 						res.send(JSON.stringify(obj));
 					});
+					} else {
+						res.send(show);
+					}
 				});
 			}
 		});
@@ -118,7 +117,7 @@ function GetLatestEpisodeWithRequest (showId, seasonNumber, callback) {
 					callback(doc);
 				});
 			} else {
-				callback({ "Error": "No new episodes available." })
+				callback({ "error": "No new episodes available." })
 			}
 		});
 	});
@@ -140,7 +139,9 @@ function GetAllEpisodesForSeasonWithRequest (showId, seasonNumber, callback) {
 
 function GenerateShow (showId, callback) {
 	GetFullShowWithRequest(showId, function(response) {
-		Show.create({
+		// check if show is currently running before creating, otherwise don't bother
+		if (response.status == "returning series" || response.status == "in production") {
+			Show.create({
 			title: response.title,
 			year: response.year,
 			ids: {
@@ -176,7 +177,10 @@ function GenerateShow (showId, callback) {
 			if (err) return console.log(err);
 			callback(doc);
 			console.log(doc.title + ' saved in DB');
-		});	
+		});
+		} else {
+			callback({ "error": "Show has ended."});
+		}	
 })
 }
 
