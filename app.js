@@ -18,11 +18,8 @@ db.once('open', function() {
   // Create your schemas and models here.
 });
 
-// Development DB
-// mongoose.connect('mongodb://localhost/nextepisodes');
-
-// Staging DB
-mongoose.connect('mongodb://heroku_app33342105:rodkBAVd3C@ds031631.mongolab.com:31631/heroku_app33342105');
+var MONGOLAB_URI = process.env.MONGOLAB_URI;
+mongoose.connect(MONGOLAB_URI);
 
 var app = express();
 

@@ -31,7 +31,7 @@ router.get('/', function(req, res) {
 	});
 });
 
-function GenerateTrendingShowsList () {
+function GenerateTrendingShowsList (callback) {
 	request({ url: 'https://api.trakt.tv/shows/trending',
 		headers: {
 			'Content-Type': 'application/json',
