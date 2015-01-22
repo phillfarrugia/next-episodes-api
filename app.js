@@ -18,8 +18,7 @@ db.once('open', function() {
   // Create your schemas and models here.
 });
 
-var MONGOLAB_URI = process.env.MONGOLAB_URI;
-mongoose.connect(MONGOLAB_URI);
+mongoose.connect('mongodb://localhost/nextepisodes');
 
 var app = express();
 
@@ -34,6 +33,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/*', function(req, res, next) {
+  res.contentType('application/json');
+  next();
+});
 
 app.use('/', routes);
 app.use('/api/v1/trending', trending);
