@@ -18,7 +18,11 @@ db.once('open', function() {
   // Create your schemas and models here.
 });
 
+// Local Dev
 mongoose.connect('mongodb://localhost/nextepisodes');
+
+// Staging
+mongoose.connect(process.env.MONGOLAB_URI);
 
 var app = express();
 
