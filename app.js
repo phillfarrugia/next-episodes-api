@@ -19,7 +19,7 @@ db.once('open', function() {
 });
 
 // Local Dev
-mongoose.connect('mongodb://localhost/nextepisodes');
+// mongoose.connect('mongodb://localhost/nextepisodes');
 
 // Staging
 mongoose.connect(process.env.MONGOLAB_URI);
