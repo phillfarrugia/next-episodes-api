@@ -20,7 +20,7 @@ router.get('/', function(req, res) {
 					res.send(JSON.stringify(obj));
 				});
 			} else {
-				res.send(JSON.stringify(doc.shows));
+				res.send(JSON.stringify(doc));
 			}
 		} else {
 			GenerateTrendingShowsList(function(trending) {
