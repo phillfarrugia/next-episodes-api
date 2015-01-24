@@ -45,7 +45,7 @@ app.get('/api/v1/*', function(req, res, next) {
 
 app.use('/', routes);
 app.use('/api/v1/trending', trending);
-app.use('/api/v1/show', episode);
+app.use('/api/v1/latest', episode);
 app.use('/api/v1/search', search);
 
 // catch 404 and forward to error handler

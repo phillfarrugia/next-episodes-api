@@ -8,7 +8,7 @@ var Episode = require("../models/episode").Episode;
 var moment = require('moment-timezone');
 
 /* GET single shows. */
-router.get('/:id/episode/', function(req, res) {
+router.get('/:id', function(req, res) {
 	Episode.findOne({ 'showId': req.params.id }, function(err, doc) {
 		if (doc) {
 			var dateCreated = new Date(doc.updated);
