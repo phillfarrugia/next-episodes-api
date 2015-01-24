@@ -194,8 +194,11 @@ function GetFullShowWithRequest(showId, callback) {
 }
 
 function ParseEpisodeAirDate (isoDate) {
-
-	return moment(isoDate).valueOf().toString();
+	if (isoDate) {
+		return moment(isoDate).valueOf().toString();
+	} else {
+		return null;
+	}
 }
 
 module.exports = router;

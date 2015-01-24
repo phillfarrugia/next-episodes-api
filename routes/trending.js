@@ -134,17 +134,21 @@ function GetFullShowWithRequest(json, callback) {
 }
 
 function ParseAirDate(json) {
-	var dayOfWeek = json.day;
-	var timeStamp = json.time;
-	var timeZone = json.timezone;
-	var components = timeStamp.split(":");
-	var hour = components[0];
-	var minutes = components[1];
+	if (json.airs != null && json.day != null && json.timezone != null) {
+		var dayOfWeek = json.day;
+		var timeStamp = json.time;
+		var timeZone = json.timezone;
+		var components = timeStamp.split(":");
+		var hour = components[0];
+		var minutes = components[1];
 
-	var date = moment().day(dayOfWeek).hour(hour).minutes(minutes);
-	var timeZoneDate = moment.tz(date, timeZone);
+		var date = moment().day(dayOfWeek).hour(hour).minutes(minutes);
+		var timeZoneDate = moment.tz(date, timeZone);
 
-	return timeZoneDate.valueOf().toString();
+		return timeZoneDate.valueOf().toString();
+	} else {
+		return null;
+	}
 }
 
 module.exports = router;
