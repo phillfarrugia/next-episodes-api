@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var routes = require('./routes/index');
+var purge = require('./routes/purge');
 var trending = require('./routes/trending');
 var episode = require('./routes/episode');
 var search = require('./routes/search');
@@ -44,6 +45,7 @@ app.get('/api/v1/*', function(req, res, next) {
 });
 
 app.use('/', routes);
+app.use('/api/v1/purge', purge);
 app.use('/api/v1/trending', trending);
 app.use('/api/v1/latest', episode);
 app.use('/api/v1/search', search);
