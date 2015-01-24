@@ -15,11 +15,7 @@ var ShowSchema   = new Schema({
     },
     overview: String,
     first_aired: String,
-    airs: {
-    	day: String,
-    	time: String,
-    	timezone: String
-    },
+    airs: String,
     runtime: Number,
     certification: String,
     network: String,
