@@ -5,6 +5,7 @@ var mongoose = require('mongoose');
 var async = require('async');
 var Show = require("../models/show").Show;
 var Search = require("../models/search").Search;
+var moment = require('moment-timezone');
 
 /* GET home page. */
 router.get('/:query', function(req, res) {
@@ -88,6 +89,8 @@ function GetSearchResultsWithRequest (query, callback) {
 
 function GenerateShow (showId, callback) {
 	GetFullShowWithRequest(showId, function(response) {
+		var airDate = ParseAirDate(response.airs);
+
 			Show.create({
 			title: response.title,
 			year: response.year,
@@ -101,11 +104,7 @@ function GenerateShow (showId, callback) {
 			},
 			overview: response.overview,
 			first_aired: response.first_aired,
-			airs: {
-				day: response.airs.day,
-				time: response.airs.time,
-				timezone: response.airs.timezone
-			},
+			airs: airDate,
 			runtime: response.runtime,
 			certification: response.certification,
 			network: response.network,
@@ -140,6 +139,20 @@ function GetFullShowWithRequest(showId, callback) {
 			callback(JSON.parse(body));
 		  }
 	});
+}
+
+function ParseAirDate(json) {
+	var dayOfWeek = json.day;
+	var timeStamp = json.time;
+	var timeZone = json.timezone;
+	var components = timeStamp.split(":");
+	var hour = components[0];
+	var minutes = components[1];
+
+	var date = moment().day(dayOfWeek).hour(hour).minutes(minutes);
+	var timeZoneDate = moment.tz(date, timeZone);
+
+	return timeZoneDate.valueOf().toString();
 }
 
 module.exports = router;

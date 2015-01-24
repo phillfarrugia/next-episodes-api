@@ -5,6 +5,7 @@ var mongoose = require('mongoose');
 var async = require('async');
 var Show = require("../models/show").Show;
 var Episode = require("../models/episode").Episode;
+var moment = require('moment-timezone');
 
 /* GET single shows. */
 router.get('/:id/episode/', function(req, res) {
@@ -93,13 +94,15 @@ function GetLatestEpisodeWithRequest (showId, seasonNumber, callback) {
 				});
 
 				var latest = episodes[0];
+				var epochAirDate = ParseEpisodeAirDate(latest.first_aired);
+
 				Episode.create({
 					showId: showId,
 					season: latest.season,
 					number: latest.number,
 					title: latest.title,
 					ids: latest.ids,
-					first_aired: latest.first_aired,
+					first_aired: epochAirDate,
 					rating: latest.rating,
 					votes: latest.votes,
 					overview: latest.overview,
@@ -188,6 +191,11 @@ function GetFullShowWithRequest(showId, callback) {
 			callback(JSON.parse(body));
 		  }
 	});
+}
+
+function ParseEpisodeAirDate (isoDate) {
+
+	return moment(isoDate).valueOf().toString();
 }
 
 module.exports = router;
