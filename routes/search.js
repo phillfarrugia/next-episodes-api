@@ -8,14 +8,14 @@ var Search = require("../models/search").Search;
 var moment = require('moment-timezone');
 
 /* GET home page. */
-router.get('/:query', function(req, res) {
-	Search.findOne({ 'query': req.params.query }, function(err, doc) {
+router.get('/', function(req, res) {
+	Search.findOne({ 'query': req.query.query }, function(err, doc) {
 		if (doc) {
 			var dateCreated = new Date(doc.updated);
 			var expiryDate = dateCreated.setDate(dateCreated.getDate() + 7);
 			if (Date.now > expiryDate) {
 				doc.remove();
-				GenerateNewSearchList(req.params.query, function (obj) {
+				GenerateNewSearchList(req.query.query, function (obj) {
 					// new Search list saved in db
 					res.send(JSON.stringify(obj));
 				});
@@ -23,7 +23,7 @@ router.get('/:query', function(req, res) {
 				res.send(JSON.stringify(doc));
 			}
 		} else {
-			GenerateNewSearchList(req.params.query, function(obj) {
+			GenerateNewSearchList(req.query.query, function(obj) {
 				// new Search list saved to db
 				res.send(JSON.stringify(obj));
 			});

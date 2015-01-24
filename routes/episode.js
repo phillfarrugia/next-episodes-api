@@ -8,14 +8,14 @@ var Episode = require("../models/episode").Episode;
 var moment = require('moment-timezone');
 
 /* GET single shows. */
-router.get('/:id', function(req, res) {
-	Episode.findOne({ 'showId': req.params.id }, function(err, doc) {
+router.get('/', function(req, res) {
+	Episode.findOne({ 'showId': req.query.id }, function(err, doc) {
 		if (doc) {
 			var dateCreated = new Date(doc.updated);
 			var expiryDate = dateCreated.setDate(dateCreated.getDate() + 7);
 			if (Date.now > expiryDate) {
 				doc.remove();
-				GenerateNextEpisodeForShow(req.params.id, function (obj) {
+				GenerateNextEpisodeForShow(req.query.id, function (obj) {
 					// New Episode saved in db
 					res.send(JSON.stringify(obj));
 				});
@@ -24,16 +24,16 @@ router.get('/:id', function(req, res) {
 			}
 		} else {
 		// Find if the show exists
-		Show.findOne({ 'ids.trakt': req.params.id }, function(err, doc) {
+		Show.findOne({ 'ids.trakt': req.query.id }, function(err, doc) {
 			if (doc) {
-				GenerateNextEpisodeForShow(req.params.id, function (obj) {
+				GenerateNextEpisodeForShow(req.query.id, function (obj) {
 					res.send(JSON.stringify(obj));
 				});
 			} else {
 				// create the show first
-				GenerateShow(req.params.id, function (show) {
+				GenerateShow(req.query.id, function (show) {
 					if (!show.error) {
-						GenerateNextEpisodeForShow(req.params.id, function (obj) {
+						GenerateNextEpisodeForShow(req.query.id, function (obj) {
 						res.send(JSON.stringify(obj));
 					});
 					} else {
